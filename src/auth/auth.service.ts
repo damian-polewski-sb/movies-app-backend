@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 
 import * as argon from 'argon2';
 
@@ -33,7 +33,29 @@ export class AuthService {
     return tokens;
   }
 
-  signinLocal() {}
+  async signinLocal(dto: AuthDto): Promise<Tokens> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: dto.email,
+      },
+    });
+
+    if (!user) {
+      throw new ForbiddenException('Credentials incorrect!');
+    }
+
+    const passwordMatches = await argon.verify(user.hash, dto.password);
+
+    if (!passwordMatches) {
+      throw new ForbiddenException('Credentials incorrect!');
+    }
+
+    const tokens = await this.signToken(user.id, user.email);
+
+    await this.updateRefreshTokenHash(user.id, tokens.refresh_token);
+
+    return tokens;
+  }
 
   logout() {}
 
