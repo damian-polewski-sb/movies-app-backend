@@ -28,7 +28,7 @@ export class AuthService {
 
     const tokens = await this.signToken(newUser.id, newUser.email);
 
-    await this.updateRefreshTokenHash(newUser.id, tokens.refresh_token);
+    await this.updateRefreshTokenHash(newUser.id, tokens.refreshToken);
 
     return tokens;
   }
@@ -52,7 +52,7 @@ export class AuthService {
 
     const tokens = await this.signToken(user.id, user.email);
 
-    await this.updateRefreshTokenHash(user.id, tokens.refresh_token);
+    await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
 
     return tokens;
   }
@@ -88,7 +88,7 @@ export class AuthService {
 
     const tokens = await this.signToken(user.id, user.email);
 
-    await this.updateRefreshTokenHash(user.id, tokens.refresh_token);
+    await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
 
     return tokens;
   }
@@ -123,8 +123,8 @@ export class AuthService {
     });
 
     return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
+      accessToken,
+      refreshToken,
     };
   }
 }
