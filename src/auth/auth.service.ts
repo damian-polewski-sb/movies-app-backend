@@ -1,8 +1,13 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 import * as argon from 'argon2';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthDto } from './dto/auth.dto';
@@ -19,18 +24,26 @@ export class AuthService {
   async signupLocal(dto: AuthDto): Promise<Tokens> {
     const hash = await argon.hash(dto.password);
 
-    const newUser = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        hash,
-      },
-    });
+    try {
+      const newUser = await this.prisma.user.create({
+        data: {
+          email: dto.email,
+          hash,
+        },
+      });
 
-    const tokens = await this.signToken(newUser.id, newUser.email);
+      const tokens = await this.signToken(newUser.id, newUser.email);
 
-    await this.updateRefreshTokenHash(newUser.id, tokens.refreshToken);
+      await this.updateRefreshTokenHash(newUser.id, tokens.refreshToken);
 
-    return tokens;
+      return tokens;
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException('Credentials taken!');
+        }
+      }
+    }
   }
 
   async signinLocal(dto: AuthDto): Promise<Tokens> {
