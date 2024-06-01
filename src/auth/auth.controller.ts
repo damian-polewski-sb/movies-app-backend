@@ -11,9 +11,9 @@ import {
 import { Response } from 'express';
 
 import { AuthService } from './auth.service';
-import { AuthDto } from './dto/auth.dto';
 import { RefreshTokenGuard } from './guards';
 import { GetRefreshToken, GetUser, Public } from './decorators';
+import { SignUpDto, SignInDto } from './dto';
 
 @Controller('auth')
 export class AuthController {
@@ -22,7 +22,7 @@ export class AuthController {
   @Public()
   @Post('local/signup')
   @HttpCode(HttpStatus.CREATED)
-  async signupLocal(@Body() dto: AuthDto, @Res() res: Response) {
+  async signupLocal(@Body() dto: SignUpDto, @Res() res: Response) {
     const { accessToken, refreshToken } =
       await this.authService.signupLocal(dto);
 
@@ -39,7 +39,7 @@ export class AuthController {
   @Public()
   @Post('local/signin')
   @HttpCode(HttpStatus.OK)
-  async signinLocal(@Body() dto: AuthDto, @Res() res: Response) {
+  async signinLocal(@Body() dto: SignInDto, @Res() res: Response) {
     const { accessToken, refreshToken } =
       await this.authService.signinLocal(dto);
 

@@ -6,7 +6,7 @@ import * as cookieParser from 'cookie-parser';
 
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
-import { AuthDto } from 'src/auth/dto';
+import { SignInDto } from 'src/auth/dto';
 
 describe('App e2e', () => {
   let app: INestApplication;
@@ -47,7 +47,7 @@ describe('App e2e', () => {
   });
 
   describe('Auth', () => {
-    const dto: AuthDto = {
+    const dto: SignInDto = {
       email: 'test@example.com',
       password: '123',
     };
