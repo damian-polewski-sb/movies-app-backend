@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import * as pactum from 'pactum';
+import * as cookieParser from 'cookie-parser';
 
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -17,18 +18,28 @@ describe('App e2e', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
+
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
       }),
     );
+
+    app.enableCors({
+      origin: 'http://localhost:3000',
+      credentials: true,
+    });
+
+    app.use(cookieParser());
+
     await app.init();
-    await app.listen(8080);
+
+    await app.listen(8081);
 
     prisma = app.get(PrismaService);
     await prisma.cleanDb();
 
-    pactum.request.setBaseUrl('http://localhost:8080');
+    pactum.request.setBaseUrl('http://localhost:8081');
   });
 
   afterAll(() => {
@@ -66,7 +77,7 @@ describe('App e2e', () => {
         return pactum.spec().post('/auth/local/signup').expectStatus(400);
       });
 
-      it('should singup', () => {
+      it('should signup', () => {
         return pactum
           .spec()
           .post('/auth/local/signup')
@@ -106,38 +117,61 @@ describe('App e2e', () => {
           .post('/auth/local/signin')
           .withBody(dto)
           .expectStatus(200)
-          .stores('userAt', 'accessToken')
-          .stores('userRt', 'refreshToken');
+          .stores('userAt', 'accessToken');
       });
     });
 
     describe('Refresh', () => {
+      let userRt: string;
+
+      beforeAll(async () => {
+        const cookies = await pactum
+          .spec()
+          .post('/auth/local/signin')
+          .withBody(dto)
+          .returns((ctx) => {
+            return ctx.res.headers['set-cookie'];
+          });
+
+        userRt = cookies[0];
+      });
+
       it('should throw if refreshToken not provided', () => {
-        return pactum.spec().post('/auth/refresh').expectStatus(401);
+        return pactum.spec().get('/auth/refresh').expectStatus(401);
       });
 
       it('should throw if wrong accessToken provided', () => {
         return pactum
           .spec()
-          .post('/auth/refresh')
-          .withHeaders({
-            Authorization: 'Bearer 123',
-          })
+          .get('/auth/refresh')
+          .withCookies('refreshToken=123; HttpOnly; SameSite=Strict')
           .expectStatus(401);
       });
 
       it('should refresh', () => {
         return pactum
           .spec()
-          .post('/auth/refresh')
-          .withHeaders({
-            Authorization: 'Bearer $S{userRt}',
-          })
+          .get('/auth/refresh')
+          .withCookies(userRt)
           .expectStatus(200);
       });
     });
 
     describe('Logout', () => {
+      let userRt: string;
+
+      beforeAll(async () => {
+        const cookies = await pactum
+          .spec()
+          .post('/auth/local/signin')
+          .withBody(dto)
+          .returns((ctx) => {
+            return ctx.res.headers['set-cookie'];
+          });
+
+        userRt = cookies[0];
+      });
+
       it('should throw if no accessToken provided', () => {
         return pactum.spec().post('/auth/logout').expectStatus(401);
       });
@@ -165,10 +199,8 @@ describe('App e2e', () => {
       it('should not refresh after logout', () => {
         return pactum
           .spec()
-          .post('/auth/refresh')
-          .withHeaders({
-            Authorization: 'Bearer $S{userRt}',
-          })
+          .get('/auth/refresh')
+          .withCookies(userRt)
           .expectStatus(403);
       });
     });

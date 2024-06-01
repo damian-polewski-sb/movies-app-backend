@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -71,6 +72,10 @@ export class AuthService {
   }
 
   async logout(userId: number) {
+    if (!userId) {
+      throw new BadRequestException('Wrong userId!');
+    }
+
     await this.prisma.user.updateMany({
       where: {
         id: userId,
@@ -126,7 +131,7 @@ export class AuthService {
     };
 
     const accessToken = await this.jwt.signAsync(payload, {
-      expiresIn: '15m',
+      expiresIn: '10m',
       secret: this.config.get('ACCESS_TOKEN_SECRET'),
     });
 
