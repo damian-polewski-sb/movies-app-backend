@@ -208,6 +208,12 @@ describe('App e2e', () => {
   });
 
   describe('Users', () => {
+    const dto: EditUserDto = {
+      firstName: 'Tom',
+      lastName: 'Test',
+      email: 'tomtest@example.com',
+    };
+
     describe('Get me', () => {
       it('should get current user', () => {
         return pactum
@@ -222,12 +228,6 @@ describe('App e2e', () => {
 
     describe('Edit user', () => {
       it('should edit user', () => {
-        const dto: EditUserDto = {
-          firstName: 'Tom',
-          lastName: 'Test',
-          email: 'tomtest@example.com',
-        };
-
         return pactum
           .spec()
           .patch('/users')
@@ -239,6 +239,20 @@ describe('App e2e', () => {
           .expectBodyContains(dto.firstName)
           .expectBodyContains(dto.lastName)
           .expectBodyContains(dto.email);
+      });
+    });
+
+    describe('Get user by id', () => {
+      it('should get user by id', () => {
+        return pactum
+          .spec()
+          .get('/users/1')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .expectStatus(200)
+          .expectBodyContains(dto.firstName)
+          .expectBodyContains(dto.lastName);
       });
     });
   });

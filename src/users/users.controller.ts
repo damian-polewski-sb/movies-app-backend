@@ -4,6 +4,8 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
+  ParseIntPipe,
   Patch,
 } from '@nestjs/common';
 
@@ -27,5 +29,11 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   editUser(@GetUser('id') userId: number, @Body() dto: EditUserDto) {
     return this.usersService.editUser(userId, dto);
+  }
+
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  getUserById(@Param('id', ParseIntPipe) userId: number) {
+    return this.usersService.getUserById(userId);
   }
 }
