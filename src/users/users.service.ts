@@ -45,6 +45,11 @@ export class UsersService {
       throw new NotFoundException('User not found!');
     }
 
-    return { id: user.id, firstName: user.firstName, lastName: user.lastName };
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      profilePicture: user.profilePicture,
+    };
   }
 }
