@@ -7,6 +7,8 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 
 import { User } from '@prisma/client';
@@ -14,6 +16,7 @@ import { User } from '@prisma/client';
 import { GetUser } from '../auth/decorators';
 import { EditUserDto } from './dto';
 import { UsersService } from './users.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 export class UsersController {
@@ -27,8 +30,13 @@ export class UsersController {
 
   @Patch()
   @HttpCode(HttpStatus.OK)
-  editUser(@GetUser('id') userId: number, @Body() dto: EditUserDto) {
-    return this.usersService.editUser(userId, dto);
+  @UseInterceptors(FileInterceptor('file'))
+  async editUser(
+    @GetUser('id') userId: number,
+    @Body() dto: EditUserDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.usersService.editUser(userId, dto, file);
   }
 
   @Get(':id')

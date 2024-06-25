@@ -1,12 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EditUserDto } from './dto';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private cloudinaryService: CloudinaryService,
+    private prisma: PrismaService,
+  ) {}
 
-  async editUser(userId: number, dto: EditUserDto) {
+  async editUser(userId: number, dto: EditUserDto, file?: Express.Multer.File) {
+    if (file) {
+      const result = await this.cloudinaryService.uploadFile(file);
+      console.log(result);
+    }
+
     const user = await this.prisma.user.update({
       where: {
         id: userId,
