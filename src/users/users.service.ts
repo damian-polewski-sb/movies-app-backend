@@ -11,9 +11,11 @@ export class UsersService {
   ) {}
 
   async editUser(userId: number, dto: EditUserDto, file?: Express.Multer.File) {
+    let profilePictureUrl: string | undefined;
+
     if (file) {
       const result = await this.cloudinaryService.uploadFile(file);
-      console.log(result);
+      profilePictureUrl = result?.url;
     }
 
     const user = await this.prisma.user.update({
@@ -22,6 +24,7 @@ export class UsersService {
       },
       data: {
         ...dto,
+        profilePicture: profilePictureUrl,
       },
     });
 

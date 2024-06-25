@@ -32,6 +32,7 @@ export class AuthService {
           lastName: dto.lastName,
           email: dto.email,
           hash,
+          profilePicture: this.config.get('CLOUDINARY_DEFAULT_PROFILE_PICTURE'),
         },
       });
 
