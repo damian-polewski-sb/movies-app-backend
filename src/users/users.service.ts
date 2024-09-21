@@ -12,19 +12,33 @@ export class UsersService {
 
   async editUser(userId: number, dto: EditUserDto, file?: Express.Multer.File) {
     let profilePictureUrl: string | undefined;
+    let profilePictureId: string | undefined;
+
+    let user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    profilePictureId = user?.profilePictureId;
 
     if (file) {
-      const result = await this.cloudinaryService.uploadFile(file);
+      const result = await this.cloudinaryService.uploadFile(
+        file,
+        profilePictureId,
+      );
       profilePictureUrl = result?.url;
+      profilePictureId = result?.public_id;
     }
 
-    const user = await this.prisma.user.update({
+    user = await this.prisma.user.update({
       where: {
         id: userId,
       },
       data: {
         ...dto,
         profilePicture: profilePictureUrl,
+        profilePictureId,
       },
     });
 

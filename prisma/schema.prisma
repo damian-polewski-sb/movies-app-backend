@@ -26,6 +26,7 @@ model User {
   lastName  String?
 
   profilePicture String?
+  profilePictureId String?
 
   @@map("users")
 }
