@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { AccessTokenGuard } from './auth/guards';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
+import { TMDBModule } from './tmdb/tmdb.module';
+import { MovieModule } from './movie/movie.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { UsersModule } from './users/users.module';
     PrismaModule,
     AuthModule,
     UsersModule,
+    TMDBModule,
+    MovieModule,
   ],
   providers: [
     {
