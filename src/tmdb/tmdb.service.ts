@@ -40,4 +40,46 @@ export class TMDBService {
       );
     }
   }
+
+  async getTrendingMovies(): Promise<any> {
+    try {
+      const url = `${this.apiUrl}/movie/popular`;
+
+      const response = await lastValueFrom(
+        this.httpService.get(url, {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+          },
+        }),
+      );
+
+      return response.data;
+    } catch (error) {
+      throw new HttpException(
+        `Failed to fetch trending movies from TMDB: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getTrendingShows(): Promise<any> {
+    try {
+      const url = `${this.apiUrl}/tv/popular`;
+
+      const response = await lastValueFrom(
+        this.httpService.get(url, {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+          },
+        }),
+      );
+
+      return response.data;
+    } catch (error) {
+      throw new HttpException(
+        `Failed to fetch trending movies from TMDB: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
