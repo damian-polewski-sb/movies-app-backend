@@ -8,10 +8,17 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { TMDBModule } from './tmdb/tmdb.module';
 import { MovieModule } from './movie/movie.module';
+import { CacheModule } from '@nestjs/cache-manager';
+
+const CACHE_TTL = 600000; // 10 mins
 
 @Module({
   imports: [
     ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    CacheModule.register({
+      ttl: CACHE_TTL,
       isGlobal: true,
     }),
     PrismaModule,
