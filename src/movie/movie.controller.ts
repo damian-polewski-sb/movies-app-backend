@@ -2,7 +2,7 @@ import { Controller, Get, Param, UseInterceptors } from '@nestjs/common';
 import { MovieService } from './movie.service';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 
-@Controller('movies')
+@Controller('content')
 @UseInterceptors(CacheInterceptor)
 export class MovieController {
   constructor(private readonly movieService: MovieService) {}
@@ -17,8 +17,13 @@ export class MovieController {
     return this.movieService.getTrendingShows();
   }
 
-  @Get(':id')
-  async getMovie(@Param('id') id: string): Promise<any> {
+  @Get('movie/:id')
+  async getMovieDetails(@Param('id') id: string): Promise<any> {
     return this.movieService.getMovieDetails(id);
+  }
+
+  @Get('show/:id')
+  async getShowDetails(@Param('id') id: string): Promise<any> {
+    return this.movieService.getShowDetails(id);
   }
 }

@@ -3,6 +3,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { lastValueFrom } from 'rxjs';
 
+import { MovieData, ShowData } from './types';
+
 @Injectable()
 export class TMDBService {
   private readonly apiUrl: string;
@@ -20,7 +22,7 @@ export class TMDBService {
     return `https://image.tmdb.org/t/p/w500/${posterPath}`;
   }
 
-  async getMovie(id: string): Promise<any> {
+  async getMovieDetails(id: string): Promise<MovieData> {
     try {
       const url = `${this.apiUrl}/movie/${id}`;
 
@@ -41,7 +43,28 @@ export class TMDBService {
     }
   }
 
-  async getTrendingMovies(): Promise<any> {
+  async getShowDetails(id: string): Promise<ShowData> {
+    try {
+      const url = `${this.apiUrl}/tv/${id}`;
+
+      const response = await lastValueFrom(
+        this.httpService.get(url, {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+          },
+        }),
+      );
+
+      return response.data;
+    } catch (error) {
+      throw new HttpException(
+        `Failed to fetch movie from TMDB: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getTrendingMovies(): Promise<{ results: MovieData[] }> {
     try {
       const url = `${this.apiUrl}/movie/popular`;
 
@@ -62,7 +85,7 @@ export class TMDBService {
     }
   }
 
-  async getTrendingShows(): Promise<any> {
+  async getTrendingShows(): Promise<{ results: ShowData[] }> {
     try {
       const url = `${this.apiUrl}/tv/popular`;
 
