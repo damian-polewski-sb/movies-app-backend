@@ -3,7 +3,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { lastValueFrom } from 'rxjs';
 
-import { MovieData, ShowData } from './types';
+import { MediaData, PaginatedMediaData } from './types';
 
 @Injectable()
 export class TMDBService {
@@ -22,7 +22,7 @@ export class TMDBService {
     return `https://image.tmdb.org/t/p/w500/${posterPath}`;
   }
 
-  async getMovieDetails(id: string): Promise<MovieData> {
+  async getMovieDetails(id: string): Promise<MediaData> {
     try {
       const url = `${this.apiUrl}/movie/${id}`;
 
@@ -43,7 +43,7 @@ export class TMDBService {
     }
   }
 
-  async getShowDetails(id: string): Promise<ShowData> {
+  async getShowDetails(id: string): Promise<MediaData> {
     try {
       const url = `${this.apiUrl}/tv/${id}`;
 
@@ -64,7 +64,7 @@ export class TMDBService {
     }
   }
 
-  async getTrendingMovies(): Promise<{ results: MovieData[] }> {
+  async getTrendingMovies(): Promise<PaginatedMediaData> {
     try {
       const url = `${this.apiUrl}/movie/popular`;
 
@@ -85,7 +85,7 @@ export class TMDBService {
     }
   }
 
-  async getTrendingShows(): Promise<{ results: ShowData[] }> {
+  async getTrendingShows(): Promise<PaginatedMediaData> {
     try {
       const url = `${this.apiUrl}/tv/popular`;
 
@@ -101,6 +101,32 @@ export class TMDBService {
     } catch (error) {
       throw new HttpException(
         `Failed to fetch trending movies from TMDB: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async search(query: string, page: number): Promise<PaginatedMediaData> {
+    try {
+      const url = `${this.apiUrl}/search/multi`;
+
+      const queryParams = new URLSearchParams({
+        query: query,
+        page: (page ?? 1).toString(),
+      });
+
+      const response = await lastValueFrom(
+        this.httpService.get(`${url}?${queryParams.toString()}`, {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+          },
+        }),
+      );
+
+      return response.data;
+    } catch (error) {
+      throw new HttpException(
+        `Failed to search movies on TMDB: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
