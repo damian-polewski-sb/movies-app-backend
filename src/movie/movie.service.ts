@@ -40,16 +40,34 @@ export class MovieService {
     return trendingShows;
   }
 
-  async search(
+  async searchMovies(
     query: string,
     page: number,
   ): Promise<PaginatedProcessedMediaData> {
-    const data = await this.tmdbService.search(query, page);
+    const data = await this.tmdbService.searchMovies(query, page);
 
     const searchResults = {
       page: data?.page,
       results: (data?.results ?? [])
-        .map((result) => this.processMediaData(result))
+        .map((result) => this.processMediaData(result, MediaType.Movie))
+        .filter((element) => element ?? false),
+      totalPages: data?.total_pages,
+      totalResults: data?.total_results,
+    };
+
+    return searchResults;
+  }
+
+  async searchShows(
+    query: string,
+    page: number,
+  ): Promise<PaginatedProcessedMediaData> {
+    const data = await this.tmdbService.searchShows(query, page);
+
+    const searchResults = {
+      page: data?.page,
+      results: (data?.results ?? [])
+        .map((result) => this.processMediaData(result, MediaType.Show))
         .filter((element) => element ?? false),
       totalPages: data?.total_pages,
       totalResults: data?.total_results,

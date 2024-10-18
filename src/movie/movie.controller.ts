@@ -18,6 +18,22 @@ export class MovieController {
     return this.movieService.getTrendingShows();
   }
 
+  @Get('search-movies')
+  async searchMovies(
+    @Query('query') query: string,
+    @Query('page') page: number,
+  ): Promise<PaginatedProcessedMediaData> {
+    return this.movieService.searchMovies(query, page);
+  }
+
+  @Get('search-shows')
+  async searchShows(
+    @Query('query') query: string,
+    @Query('page') page: number,
+  ): Promise<PaginatedProcessedMediaData> {
+    return this.movieService.searchShows(query, page);
+  }
+
   @Get('movie/:id')
   async getMovieDetails(@Param('id') id: string): Promise<ProcessedMediaData> {
     return this.movieService.getMovieDetails(id);
@@ -26,13 +42,5 @@ export class MovieController {
   @Get('show/:id')
   async getShowDetails(@Param('id') id: string): Promise<ProcessedMediaData> {
     return this.movieService.getShowDetails(id);
-  }
-
-  @Get('search')
-  async search(
-    @Query('query') query: string,
-    @Query('page') page: number,
-  ): Promise<PaginatedProcessedMediaData> {
-    return this.movieService.search(query, page);
   }
 }

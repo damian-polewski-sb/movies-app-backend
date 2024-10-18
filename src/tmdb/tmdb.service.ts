@@ -106,9 +106,9 @@ export class TMDBService {
     }
   }
 
-  async search(query: string, page: number): Promise<PaginatedMediaData> {
+  async searchMovies(query: string, page: number): Promise<PaginatedMediaData> {
     try {
-      const url = `${this.apiUrl}/search/multi`;
+      const url = `${this.apiUrl}/search/movie`;
 
       const queryParams = new URLSearchParams({
         query: query,
@@ -127,6 +127,32 @@ export class TMDBService {
     } catch (error) {
       throw new HttpException(
         `Failed to search movies on TMDB: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async searchShows(query: string, page: number): Promise<PaginatedMediaData> {
+    try {
+      const url = `${this.apiUrl}/search/tv`;
+
+      const queryParams = new URLSearchParams({
+        query: query,
+        page: (page ?? 1).toString(),
+      });
+
+      const response = await lastValueFrom(
+        this.httpService.get(`${url}?${queryParams.toString()}`, {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+          },
+        }),
+      );
+
+      return response.data;
+    } catch (error) {
+      throw new HttpException(
+        `Failed to search shows on TMDB: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
