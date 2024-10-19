@@ -1,5 +1,10 @@
 import { HttpService } from '@nestjs/axios';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { lastValueFrom } from 'rxjs';
 
@@ -123,6 +128,9 @@ export class TMDBService {
         }),
       );
 
+      if (page > response.data.total_pages)
+        throw new NotFoundException('Page number not found!');
+
       return response.data;
     } catch (error) {
       throw new HttpException(
@@ -148,6 +156,9 @@ export class TMDBService {
           },
         }),
       );
+
+      if (page > response.data.total_pages)
+        throw new NotFoundException('Page number not found!');
 
       return response.data;
     } catch (error) {
