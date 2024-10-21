@@ -25,8 +25,39 @@ model User {
   firstName String?
   lastName  String?
 
-  profilePicture String?
+  profilePicture   String?
   profilePictureId String?
 
+  lists List[]
+
   @@map("users")
+}
+
+model List {
+  id        Int         @id @default(autoincrement())
+  listType  ListType
+  authorId  Int
+  author    User        @relation(fields: [authorId], references: [id])
+  entries   ListEntry[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model ListEntry {
+  id        Int       @id @default(autoincrement())
+  mediaType MediaType
+  mediaId   Int
+  posterUrl String
+  listId    Int
+  list      List      @relation(fields: [listId], references: [id])
+}
+
+enum MediaType {
+  Movie
+  Show
+}
+
+enum ListType {
+  Watched
+  ToWatch
 }

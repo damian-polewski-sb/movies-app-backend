@@ -13,6 +13,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from '../prisma/prisma.service';
 import { Tokens } from './types';
 import { SignUpDto, SignInDto } from './dto';
+import { ListService } from 'src/list/list.service';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +21,7 @@ export class AuthService {
     private config: ConfigService,
     private prisma: PrismaService,
     private jwt: JwtService,
+    private listService: ListService,
   ) {}
 
   async signupLocal(dto: SignUpDto): Promise<Tokens> {
@@ -39,6 +41,8 @@ export class AuthService {
       const tokens = await this.signToken(newUser.id, newUser.email);
 
       await this.updateRefreshTokenHash(newUser.id, tokens.refreshToken);
+
+      await this.listService.createPredefinedListsForUser(newUser.id);
 
       return tokens;
     } catch (error) {

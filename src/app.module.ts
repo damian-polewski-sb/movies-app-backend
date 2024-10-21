@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { TMDBModule } from './tmdb/tmdb.module';
 import { MovieModule } from './movie/movie.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { ListModule } from './list/list.module';
 
 const CACHE_TTL = 600000; // 10 mins
 
@@ -26,6 +27,7 @@ const CACHE_TTL = 600000; // 10 mins
     UsersModule,
     TMDBModule,
     MovieModule,
+    ListModule,
   ],
   providers: [
     {
