@@ -45,6 +45,7 @@ model List {
 
 model ListEntry {
   id        Int       @id @default(autoincrement())
+  title     String
   mediaType MediaType
   mediaId   Int
   posterUrl String

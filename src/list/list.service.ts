@@ -69,7 +69,12 @@ export class ListService {
         : await this.movieService.getShowDetails(dto.mediaId.toString());
 
     return this.prisma.listEntry.create({
-      data: { listId, ...dto, posterUrl: mediaDetails.posterUrl },
+      data: {
+        listId,
+        ...dto,
+        title: mediaDetails.title,
+        posterUrl: mediaDetails.posterUrl,
+      },
     });
   }
 
