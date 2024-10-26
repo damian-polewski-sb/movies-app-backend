@@ -4,10 +4,17 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { List, ListEntry, ListType, MediaType } from '@prisma/client';
+import {
+  List,
+  ListEntry,
+  ListType,
+  MediaType as PrismaMediaType,
+} from '@prisma/client';
 import { MovieService } from 'src/movie/movie.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ListEntryDto } from './dto';
+import { ProcessedList } from './types';
+import { MediaType } from 'src/tmdb/types';
 
 @Injectable()
 export class ListService {
@@ -25,18 +32,22 @@ export class ListService {
     });
   }
 
-  async getListById(listId: number): Promise<List> {
-    return this.prisma.list.findUnique({
+  async getListById(listId: number): Promise<ProcessedList> {
+    const list = await this.prisma.list.findUnique({
       where: { id: listId },
       include: { entries: true },
     });
+
+    return this.processListData(list);
   }
 
-  async getUserLists(userId: number): Promise<List[]> {
-    return this.prisma.list.findMany({
+  async getUserLists(userId: number): Promise<ProcessedList[]> {
+    const userLists = await this.prisma.list.findMany({
       where: { authorId: userId },
       include: { entries: true },
     });
+
+    return userLists.map((list) => this.processListData(list));
   }
 
   async addEntryToList(
@@ -64,7 +75,7 @@ export class ListService {
     if (listEntry) throw new ConflictException('Media already on the list!');
 
     const mediaDetails =
-      dto.mediaType === MediaType.Movie
+      dto.mediaType === PrismaMediaType.Movie
         ? await this.movieService.getMovieDetails(dto.mediaId.toString())
         : await this.movieService.getShowDetails(dto.mediaId.toString());
 
@@ -107,5 +118,21 @@ export class ListService {
         id: listEntry.id,
       },
     });
+  }
+
+  processListData(list: List & { entries: ListEntry[] }): ProcessedList {
+    return {
+      id: list.id,
+      listType: list.listType,
+      entries: list.entries.map((entry) => ({
+        id: entry.mediaId,
+        title: entry.title,
+        posterUrl: entry.posterUrl,
+        mediaType:
+          entry.mediaType === PrismaMediaType.Movie
+            ? MediaType.Movie
+            : MediaType.Show,
+      })),
+    };
   }
 }
