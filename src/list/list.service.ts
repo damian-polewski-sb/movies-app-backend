@@ -15,6 +15,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ListEntryDto } from './dto';
 import { ProcessedList } from './types';
 import { MediaType } from 'src/tmdb/types';
+import { convertToPrismaMediaType } from './utils';
 
 @Injectable()
 export class ListService {
@@ -50,6 +51,24 @@ export class ListService {
     return userLists.map((list) => this.processListData(list));
   }
 
+  async getUserWatchedList(userId: number): Promise<ProcessedList> {
+    const watchedList = await this.prisma.list.findFirst({
+      where: { authorId: userId, listType: ListType.Watched },
+      include: { entries: true },
+    });
+
+    return this.processListData(watchedList);
+  }
+
+  async getUserToWatchList(userId: number): Promise<ProcessedList> {
+    const toWatchedList = await this.prisma.list.findFirst({
+      where: { authorId: userId, listType: ListType.ToWatch },
+      include: { entries: true },
+    });
+
+    return this.processListData(toWatchedList);
+  }
+
   async addEntryToList(
     userId: number,
     listId: number,
@@ -68,21 +87,22 @@ export class ListService {
       where: {
         listId: listId,
         mediaId: dto.mediaId,
-        mediaType: dto.mediaType,
+        mediaType: convertToPrismaMediaType(dto.mediaType),
       },
     });
 
     if (listEntry) throw new ConflictException('Media already on the list!');
 
     const mediaDetails =
-      dto.mediaType === PrismaMediaType.Movie
+      convertToPrismaMediaType(dto.mediaType) === PrismaMediaType.Movie
         ? await this.movieService.getMovieDetails(dto.mediaId.toString())
         : await this.movieService.getShowDetails(dto.mediaId.toString());
 
     return this.prisma.listEntry.create({
       data: {
         listId,
-        ...dto,
+        mediaId: dto.mediaId,
+        mediaType: convertToPrismaMediaType(dto.mediaType),
         title: mediaDetails.title,
         posterUrl: mediaDetails.posterUrl,
       },
@@ -107,7 +127,7 @@ export class ListService {
       where: {
         listId: listId,
         mediaId: dto.mediaId,
-        mediaType: dto.mediaType,
+        mediaType: convertToPrismaMediaType(dto.mediaType),
       },
     });
 

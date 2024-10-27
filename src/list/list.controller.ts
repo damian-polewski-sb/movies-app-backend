@@ -25,6 +25,16 @@ export class ListController {
     return this.listService.getUserLists(userId);
   }
 
+  @Get('user/:userId/watched')
+  async getUserWatchedList(@Param('userId', ParseIntPipe) userId: number) {
+    return this.listService.getUserWatchedList(userId);
+  }
+
+  @Get('user/:userId/to-watch')
+  async getUserToWatchList(@Param('userId', ParseIntPipe) userId: number) {
+    return this.listService.getUserToWatchList(userId);
+  }
+
   @Post(':listId/entries')
   async addEntryToList(
     @GetUser('id') userId: number,

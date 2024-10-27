@@ -1,5 +1,5 @@
-import { MediaType } from '@prisma/client';
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { MediaType } from 'src/tmdb/types';
 
 export class ListEntryDto {
   @IsNotEmpty()
