@@ -7,12 +7,14 @@ import {
   ParseIntPipe,
   Delete,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { GetUser } from 'src/auth/decorators';
 import { AddCommentDto, AddReviewDto } from './dto';
 import { MediaType } from 'src/tmdb/types';
 import { EditCommentDto } from './dto/edit-comment.dto';
+import { GetAllPostsDto } from './dto/get-posts.dto';
 
 @Controller('posts')
 export class PostController {
@@ -21,6 +23,11 @@ export class PostController {
   @Get(':postId')
   async getPostById(@Param('postId', ParseIntPipe) postId: number) {
     return this.postService.getPostById(postId);
+  }
+
+  @Get()
+  getAllPaginatedPosts(@Query() dto: GetAllPostsDto) {
+    return this.postService.getAllPaginatedPosts(dto);
   }
 
   @Delete(':postId')

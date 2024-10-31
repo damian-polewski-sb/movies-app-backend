@@ -10,6 +10,7 @@ import { Like, Post, Comment } from '@prisma/client';
 import { MediaType } from 'src/tmdb/types';
 import { convertToPrismaMediaType } from 'src/list/utils';
 import { EditCommentDto } from './dto/edit-comment.dto';
+import { GetAllPostsDto } from './dto/get-posts.dto';
 
 @Injectable()
 export class PostService {
@@ -25,6 +26,38 @@ export class PostService {
     }
 
     return post;
+  }
+
+  async getAllPaginatedPosts(dto: GetAllPostsDto) {
+    const { page, pageSize } = dto;
+    const skip = (page - 1) * pageSize;
+
+    const posts = await this.prisma.post.findMany({
+      where: {
+        userId: dto.userId,
+      },
+      skip: skip,
+      take: pageSize,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    const totalPosts = await this.prisma.post.count({
+      where: {
+        userId: dto.userId,
+      },
+    });
+
+    return {
+      posts,
+      pagination: {
+        page,
+        pageSize,
+        totalPosts,
+        totalPages: Math.ceil(totalPosts / pageSize),
+      },
+    };
   }
 
   async deletePostById(userId: number, postId: number): Promise<void> {
