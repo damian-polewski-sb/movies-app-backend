@@ -18,27 +18,36 @@ import { EditCommentDto } from './dto/edit-comment.dto';
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
-  @Get(':reviewId')
-  async getReview(@Param('reviewId', ParseIntPipe) reviewId: number) {
-    return this.postService.getReview(reviewId);
+  @Get(':postId')
+  async getPostById(@Param('postId', ParseIntPipe) postId: number) {
+    return this.postService.getPostById(postId);
   }
 
-  @Post(':mediaType/:mediaId/review')
-  async addOrUpdateReview(
+  @Delete(':postId')
+  deletePostById(
+    @Param('postId', ParseIntPipe) postId: number,
+    @GetUser('id') userId: number,
+  ) {
+    return this.postService.deletePostById(userId, postId);
+  }
+
+  @Get('review/:mediaType/:mediaId')
+  async getUserReview(
+    @Param('mediaId', ParseIntPipe) mediaId: number,
+    @Param('mediaType') mediaType: MediaType,
+    @GetUser('id') userId: number,
+  ) {
+    return this.postService.getUserReview(userId, mediaId, mediaType);
+  }
+
+  @Post('review/:mediaType/:mediaId')
+  async addOrUpdateUserReview(
     @Param('mediaId', ParseIntPipe) mediaId: number,
     @Param('mediaType') mediaType: MediaType,
     @Body() dto: AddReviewDto,
     @GetUser('id') userId: number,
   ) {
     return this.postService.addOrUpdateReview(userId, mediaId, mediaType, dto);
-  }
-
-  @Delete(':reviewId')
-  deleteReview(
-    @Param('reviewId', ParseIntPipe) reviewId: number,
-    @GetUser('id') userId: number,
-  ) {
-    return this.postService.deleteReview(userId, reviewId);
   }
 
   @Post(':postId/like')
@@ -57,7 +66,12 @@ export class PostController {
     return this.postService.unlikePost(userId, postId);
   }
 
-  @Post(':postId/comment')
+  @Get(':postId/comments')
+  async getPostComments(@Param('postId', ParseIntPipe) postId: number) {
+    return this.postService.getPostComments(postId);
+  }
+
+  @Post(':postId/comments')
   async addComment(
     @Param('postId', ParseIntPipe) postId: number,
     @Body() dto: AddCommentDto,

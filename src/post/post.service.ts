@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -14,13 +15,53 @@ import { EditCommentDto } from './dto/edit-comment.dto';
 export class PostService {
   constructor(private prisma: PrismaService) {}
 
-  async getReview(reviewId: number): Promise<Post> {
+  async getPostById(postId: number): Promise<Post> {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found!');
+    }
+
+    return post;
+  }
+
+  async deletePostById(userId: number, postId: number): Promise<void> {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found!');
+    }
+
+    if (post.userId !== userId) {
+      throw new ForbiddenException('Access denied!');
+    }
+
+    await this.prisma.post.delete({
+      where: { id: postId },
+    });
+  }
+
+  async getUserReview(
+    userId: number,
+    mediaId: number,
+    mediaType: MediaType,
+  ): Promise<Post> {
     const review = await this.prisma.post.findUnique({
-      where: { id: reviewId },
+      where: {
+        userId_mediaId_mediaType: {
+          userId,
+          mediaId,
+          mediaType: convertToPrismaMediaType(mediaType),
+        },
+      },
     });
 
     if (!review) {
-      throw new NotFoundException('Review not found');
+      throw new NotFoundException('Review not found!');
     }
 
     return review;
@@ -54,25 +95,20 @@ export class PostService {
     });
   }
 
-  async deleteReview(userId: number, reviewId: number): Promise<Post> {
-    const review = await this.prisma.post.findUnique({
-      where: { id: reviewId },
-    });
-
-    if (!review) {
-      throw new NotFoundException('Review not found');
-    }
-
-    if (review.userId !== userId) {
-      throw new ForbiddenException('You can only delete your own review');
-    }
-
-    return this.prisma.post.delete({
-      where: { id: reviewId },
-    });
-  }
-
   async likePost(userId: number, postId: number): Promise<Like> {
+    const like = await this.prisma.like.findUnique({
+      where: {
+        postId_userId: {
+          postId,
+          userId,
+        },
+      },
+    });
+
+    if (like) {
+      throw new ConflictException('Post is already liked!');
+    }
+
     return this.prisma.like.create({
       data: {
         userId,
@@ -82,6 +118,19 @@ export class PostService {
   }
 
   async unlikePost(userId: number, postId: number): Promise<void> {
+    const like = await this.prisma.like.findUnique({
+      where: {
+        postId_userId: {
+          postId,
+          userId,
+        },
+      },
+    });
+
+    if (!like) {
+      throw new NotFoundException('Post is not liked!');
+    }
+
     await this.prisma.like.delete({
       where: {
         postId_userId: {
@@ -92,11 +141,35 @@ export class PostService {
     });
   }
 
+  async getPostComments(postId: number): Promise<Comment[]> {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found!');
+    }
+
+    return this.prisma.comment.findMany({
+      where: {
+        postId,
+      },
+    });
+  }
+
   async addComment(
     userId: number,
     postId: number,
     dto: AddCommentDto,
   ): Promise<Comment> {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found!');
+    }
+
     return this.prisma.comment.create({
       data: {
         userId,
@@ -116,11 +189,11 @@ export class PostService {
     });
 
     if (!comment) {
-      throw new NotFoundException('Comment not found');
+      throw new NotFoundException('Comment not found!');
     }
 
     if (comment.userId !== userId) {
-      throw new ForbiddenException('You can only edit your own comment');
+      throw new ForbiddenException('Access denied!');
     }
 
     return this.prisma.comment.update({
@@ -131,20 +204,20 @@ export class PostService {
     });
   }
 
-  async deleteComment(userId: number, commentId: number): Promise<Comment> {
+  async deleteComment(userId: number, commentId: number): Promise<void> {
     const comment = await this.prisma.comment.findUnique({
       where: { id: commentId },
     });
 
     if (!comment) {
-      throw new NotFoundException('Comment not found');
+      throw new NotFoundException('Comment not found!');
     }
 
     if (comment.userId !== userId) {
-      throw new ForbiddenException('You can only delete your own comment');
+      throw new ForbiddenException('Access denied!');
     }
 
-    return this.prisma.comment.delete({
+    await this.prisma.comment.delete({
       where: { id: commentId },
     });
   }
