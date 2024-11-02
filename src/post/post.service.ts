@@ -37,7 +37,7 @@ export class PostService {
     return post;
   }
 
-  async getAllPaginatedPosts(dto: GetAllPostsDto) {
+  async getAllPaginatedPosts(dto: GetAllPostsDto, userId: number) {
     const { page, pageSize } = dto;
     const skip = (page - 1) * pageSize;
 
@@ -64,6 +64,11 @@ export class PostService {
             likes: true,
           },
         },
+        likes: {
+          where: {
+            userId: userId,
+          },
+        },
       },
     });
 
@@ -76,6 +81,7 @@ export class PostService {
     return {
       posts: posts.map((post) => ({
         ...post,
+        isLiked: post.likes.length > 0 ? true : false,
         mediaType: convertToMediaType(post.mediaType),
       })),
       pagination: {

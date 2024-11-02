@@ -26,8 +26,11 @@ export class PostController {
   }
 
   @Get()
-  getAllPaginatedPosts(@Query() dto: GetAllPostsDto) {
-    return this.postService.getAllPaginatedPosts(dto);
+  getAllPaginatedPosts(
+    @Query() dto: GetAllPostsDto,
+    @GetUser('id') userId: number,
+  ) {
+    return this.postService.getAllPaginatedPosts(dto, userId);
   }
 
   @Delete(':postId')
