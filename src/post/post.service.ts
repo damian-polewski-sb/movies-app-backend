@@ -13,7 +13,7 @@ import {
   MediaType as PrismaMediaType,
 } from '@prisma/client';
 import { MediaType } from 'src/tmdb/types';
-import { convertToPrismaMediaType } from 'src/list/utils';
+import { convertToMediaType, convertToPrismaMediaType } from 'src/list/utils';
 import { EditCommentDto } from './dto/edit-comment.dto';
 import { GetAllPostsDto } from './dto/get-posts.dto';
 import { MovieService } from 'src/movie/movie.service';
@@ -74,7 +74,10 @@ export class PostService {
     });
 
     return {
-      posts,
+      posts: posts.map((post) => ({
+        ...post,
+        mediaType: convertToMediaType(post.mediaType),
+      })),
       pagination: {
         page,
         pageSize,
