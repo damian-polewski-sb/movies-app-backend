@@ -6,15 +6,24 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AddCommentDto, AddReviewDto } from './dto';
-import { Like, Post, Comment } from '@prisma/client';
+import {
+  Like,
+  Post,
+  Comment,
+  MediaType as PrismaMediaType,
+} from '@prisma/client';
 import { MediaType } from 'src/tmdb/types';
 import { convertToPrismaMediaType } from 'src/list/utils';
 import { EditCommentDto } from './dto/edit-comment.dto';
 import { GetAllPostsDto } from './dto/get-posts.dto';
+import { MovieService } from 'src/movie/movie.service';
 
 @Injectable()
 export class PostService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private movieService: MovieService,
+  ) {}
 
   async getPostById(postId: number): Promise<Post> {
     const post = await this.prisma.post.findUnique({
@@ -40,6 +49,21 @@ export class PostService {
       take: pageSize,
       orderBy: {
         createdAt: 'desc',
+      },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            profilePicture: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            likes: true,
+          },
+        },
       },
     });
 
@@ -106,6 +130,11 @@ export class PostService {
     mediaType: MediaType,
     dto: AddReviewDto,
   ): Promise<Post> {
+    const mediaDetails =
+      convertToPrismaMediaType(mediaType) === PrismaMediaType.Movie
+        ? await this.movieService.getMovieDetails(mediaId.toString())
+        : await this.movieService.getShowDetails(mediaId.toString());
+
     return this.prisma.post.upsert({
       where: {
         userId_mediaId_mediaType: {
@@ -120,8 +149,10 @@ export class PostService {
       },
       create: {
         userId,
+        title: mediaDetails.title,
         mediaId,
         mediaType: convertToPrismaMediaType(mediaType),
+        posterUrl: mediaDetails.posterUrl,
         rating: dto.rating,
         content: dto.content,
       },
