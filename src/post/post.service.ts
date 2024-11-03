@@ -41,10 +41,27 @@ export class PostService {
     const { page, pageSize } = dto;
     const skip = (page - 1) * pageSize;
 
+    let followingIds: number[] = [];
+
+    if (dto.followed) {
+      const following = await this.prisma.follows.findMany({
+        where: { followerId: userId },
+        select: { followingId: true },
+      });
+
+      followingIds = following.map((f) => f.followingId);
+    }
+
+    const whereCondition: any = {};
+
+    if (dto.userId) {
+      whereCondition.userId = dto.userId;
+    } else if (dto.followed) {
+      whereCondition.userId = { in: followingIds };
+    }
+
     const posts = await this.prisma.post.findMany({
-      where: {
-        userId: dto.userId,
-      },
+      where: whereCondition,
       skip: skip,
       take: pageSize,
       orderBy: {

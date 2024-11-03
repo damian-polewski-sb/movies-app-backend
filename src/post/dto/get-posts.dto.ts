@@ -1,4 +1,4 @@
-import { IsInt, IsNumber, IsOptional, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsNumber, IsOptional, Min } from 'class-validator';
 
 export class GetAllPostsDto {
   @IsInt()
@@ -8,6 +8,10 @@ export class GetAllPostsDto {
   @IsNumber()
   @IsOptional()
   userId: number;
+
+  @IsBoolean()
+  @IsOptional()
+  followed: boolean;
 
   @IsInt()
   @Min(1)

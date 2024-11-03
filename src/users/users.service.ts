@@ -77,15 +77,24 @@ export class UsersService {
       throw new NotFoundException('User not found!');
     }
 
+    const likesCount = await this.prisma.like.count({
+      where: {
+        post: {
+          userId: paramUserId,
+        },
+      },
+    });
+
     return {
       id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       profilePicture: user.profilePicture,
-      reviewsCount: user._count.Post,
       followersCount: user._count.following,
       followingCount: user._count.followers,
       isFollowed: user.following.length > 0 ? true : false,
+      reviewsCount: user._count.Post,
+      likesCount,
     };
   }
 
