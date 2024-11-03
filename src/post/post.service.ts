@@ -227,6 +227,18 @@ export class PostService {
       where: {
         postId,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            profilePicture: true,
+          },
+        },
+      },
     });
   }
 
@@ -248,6 +260,15 @@ export class PostService {
         userId,
         postId,
         content: dto.content,
+      },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            profilePicture: true,
+          },
+        },
       },
     });
   }
