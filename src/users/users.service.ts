@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EditUserDto } from './dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
@@ -48,10 +52,24 @@ export class UsersService {
     return user;
   }
 
-  async getUserById(userId: number) {
+  async getUserById(paramUserId: number, userId: number) {
     const user = await this.prisma.user.findUnique({
       where: {
-        id: userId,
+        id: paramUserId,
+      },
+      include: {
+        _count: {
+          select: {
+            Post: true,
+            following: true,
+            followers: true,
+          },
+        },
+        following: {
+          where: {
+            followerId: userId,
+          },
+        },
       },
     });
 
@@ -64,6 +82,89 @@ export class UsersService {
       firstName: user.firstName,
       lastName: user.lastName,
       profilePicture: user.profilePicture,
+      reviewsCount: user._count.Post,
+      followersCount: user._count.following,
+      followingCount: user._count.followers,
+      isFollowed: user.following.length > 0 ? true : false,
     };
+  }
+
+  async getFollowers(userId: number) {
+    return this.prisma.follows.findMany({
+      where: { followingId: userId },
+      include: {
+        follower: {
+          select: {
+            firstName: true,
+            lastName: true,
+            profilePicture: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getFollowing(userId: number) {
+    return this.prisma.follows.findMany({
+      where: { followerId: userId },
+      include: {
+        following: {
+          select: {
+            firstName: true,
+            lastName: true,
+            profilePicture: true,
+          },
+        },
+      },
+    });
+  }
+
+  async followUser(followingId: number, followerId: number) {
+    if (followingId === followerId)
+      throw new ConflictException('User cannot follow themselves!');
+
+    const existingFollow = await this.prisma.follows.findUnique({
+      where: {
+        followingId_followerId: {
+          followingId,
+          followerId,
+        },
+      },
+    });
+
+    if (existingFollow)
+      throw new ConflictException('User is already followed!');
+
+    return this.prisma.follows.create({
+      data: {
+        followingId,
+        followerId,
+      },
+    });
+  }
+
+  async unfollowUser(followingId: number, followerId: number) {
+    if (followingId === followerId)
+      throw new ConflictException('User cannot follow themselves!');
+
+    const followRelation = await this.prisma.follows.findUnique({
+      where: {
+        followingId_followerId: {
+          followingId,
+          followerId,
+        },
+      },
+    });
+
+    if (!followRelation) throw new NotFoundException('User is not followed!');
+
+    return this.prisma.follows.delete({
+      where: {
+        followingId_followerId: {
+          followingId,
+          followerId,
+        },
+      },
+    });
   }
 }

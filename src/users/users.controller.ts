@@ -1,12 +1,14 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
   ParseIntPipe,
   Patch,
+  Post,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -41,7 +43,38 @@ export class UsersController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  getUserById(@Param('id', ParseIntPipe) userId: number) {
-    return this.usersService.getUserById(userId);
+  getUserById(
+    @Param('id', ParseIntPipe) paramUserId: number,
+    @GetUser('id') userId: number,
+  ) {
+    return this.usersService.getUserById(paramUserId, userId);
+  }
+
+  @Get(':id/followers')
+  async getFollowers(@Param('id', ParseIntPipe) userId: number) {
+    return this.usersService.getFollowers(userId);
+  }
+
+  @Get(':id/following')
+  async getFollowing(@Param('id', ParseIntPipe) userId: number) {
+    return this.usersService.getFollowing(userId);
+  }
+
+  @Post(':id/follow')
+  @HttpCode(HttpStatus.OK)
+  async followUser(
+    @Param('id', ParseIntPipe) followingId: number,
+    @GetUser('id') followerUserId: number,
+  ) {
+    return this.usersService.followUser(followingId, followerUserId);
+  }
+
+  @Delete(':id/follow')
+  @HttpCode(HttpStatus.OK)
+  async unfollowUser(
+    @Param('id', ParseIntPipe) followingId: number,
+    @GetUser('id') followerUserId: number,
+  ) {
+    return this.usersService.unfollowUser(followingId, followerUserId);
   }
 }

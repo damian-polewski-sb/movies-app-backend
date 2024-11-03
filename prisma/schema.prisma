@@ -33,6 +33,9 @@ model User {
   Comment Comment[]
   Like    Like[]
 
+  followers Follows[] @relation("follower")
+  following Follows[] @relation("following")
+
   @@map("users")
 }
 
@@ -107,4 +110,14 @@ model Like {
   user User @relation(fields: [userId], references: [id])
 
   @@unique([postId, userId])
+}
+
+model Follows {
+  follower    User     @relation("follower", fields: [followerId], references: [id])
+  followerId  Int
+  following   User     @relation("following", fields: [followingId], references: [id])
+  followingId Int
+  createdAt   DateTime @default(now())
+
+  @@id([followingId, followerId])
 }
