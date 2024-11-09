@@ -8,6 +8,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -33,10 +37,8 @@ model User {
   Comment Comment[]
   Like    Like[]
 
-  followers Follows[] @relation("follower")
-  following Follows[] @relation("following")
-
-  @@map("users")
+  followers Follow[] @relation("follower")
+  following Follow[] @relation("following")
 }
 
 model List {
@@ -86,7 +88,6 @@ model Post {
   likes    Like[]
 
   @@unique([userId, mediaId, mediaType])
-  @@map("posts")
 }
 
 model Comment {
@@ -112,7 +113,7 @@ model Like {
   @@unique([postId, userId])
 }
 
-model Follows {
+model Follow {
   follower    User     @relation("follower", fields: [followerId], references: [id])
   followerId  Int
   following   User     @relation("following", fields: [followingId], references: [id])

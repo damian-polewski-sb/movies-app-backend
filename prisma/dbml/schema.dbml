@@ -1,0 +1,125 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table User {
+  id Int [pk, increment]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  email String [unique, not null]
+  hash String [not null]
+  hashedRt String
+  firstName String
+  lastName String
+  profilePicture String
+  profilePictureId String
+  lists List [not null]
+  Post Post [not null]
+  Comment Comment [not null]
+  Like Like [not null]
+  followers Follow [not null]
+  following Follow [not null]
+}
+
+Table List {
+  id Int [pk, increment]
+  listType ListType [not null]
+  authorId Int [not null]
+  author User [not null]
+  entries ListEntry [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table ListEntry {
+  id Int [pk, increment]
+  title String [not null]
+  mediaType MediaType [not null]
+  mediaId Int [not null]
+  posterUrl String [not null]
+  listId Int [not null]
+  list List [not null]
+}
+
+Table Post {
+  id Int [pk, increment]
+  userId Int [not null]
+  title String [not null]
+  mediaId Int [not null]
+  mediaType MediaType [not null]
+  posterUrl String [not null]
+  rating Int [not null]
+  content String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  user User [not null]
+  comments Comment [not null]
+  likes Like [not null]
+
+  indexes {
+    (userId, mediaId, mediaType) [unique]
+  }
+}
+
+Table Comment {
+  id Int [pk, increment]
+  content String [not null]
+  postId Int [not null]
+  userId Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  post Post [not null]
+  user User [not null]
+}
+
+Table Like {
+  id Int [pk, increment]
+  postId Int [not null]
+  userId Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  post Post [not null]
+  user User [not null]
+
+  indexes {
+    (postId, userId) [unique]
+  }
+}
+
+Table Follow {
+  follower User [not null]
+  followerId Int [not null]
+  following User [not null]
+  followingId Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (followingId, followerId) [pk]
+  }
+}
+
+Enum MediaType {
+  Movie
+  Show
+}
+
+Enum ListType {
+  Watched
+  ToWatch
+}
+
+Ref: List.authorId > User.id
+
+Ref: ListEntry.listId > List.id
+
+Ref: Post.userId > User.id
+
+Ref: Comment.postId > Post.id [delete: Cascade]
+
+Ref: Comment.userId > User.id
+
+Ref: Like.postId > Post.id [delete: Cascade]
+
+Ref: Like.userId > User.id
+
+Ref: Follow.followerId > User.id
+
+Ref: Follow.followingId > User.id
