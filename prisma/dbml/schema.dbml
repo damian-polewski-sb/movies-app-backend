@@ -19,6 +19,7 @@ Table User {
   Like Like [not null]
   followers Follow [not null]
   following Follow [not null]
+  Notification Notification [not null]
 }
 
 Table List {
@@ -96,6 +97,15 @@ Table Follow {
   }
 }
 
+Table Notification {
+  id Int [pk, increment]
+  message String [not null]
+  userId Int [not null]
+  user User [not null]
+  isRead Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+}
+
 Enum MediaType {
   Movie
   Show
@@ -123,3 +133,5 @@ Ref: Like.userId > User.id
 Ref: Follow.followerId > User.id
 
 Ref: Follow.followingId > User.id
+
+Ref: Notification.userId > User.id

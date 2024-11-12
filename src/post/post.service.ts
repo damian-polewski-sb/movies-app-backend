@@ -17,12 +17,14 @@ import { convertToMediaType, convertToPrismaMediaType } from 'src/list/utils';
 import { EditCommentDto } from './dto/edit-comment.dto';
 import { GetAllPostsDto } from './dto/get-posts.dto';
 import { MovieService } from 'src/movie/movie.service';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class PostService {
   constructor(
     private prisma: PrismaService,
     private movieService: MovieService,
+    private notificationService: NotificationService,
   ) {}
 
   async getPostById(postId: number): Promise<Post> {
@@ -44,7 +46,7 @@ export class PostService {
     let followingIds: number[] = [];
 
     if (dto.followed) {
-      const following = await this.prisma.follows.findMany({
+      const following = await this.prisma.follow.findMany({
         where: { followerId: userId },
         select: { followingId: true },
       });
@@ -186,7 +188,7 @@ export class PostService {
   }
 
   async likePost(userId: number, postId: number): Promise<Like> {
-    const like = await this.prisma.like.findUnique({
+    const existingLike = await this.prisma.like.findUnique({
       where: {
         postId_userId: {
           postId,
@@ -195,16 +197,31 @@ export class PostService {
       },
     });
 
-    if (like) {
+    if (existingLike) {
       throw new ConflictException('Post is already liked!');
     }
 
-    return this.prisma.like.create({
+    const post = await this.prisma.post.findUnique({
+      where: {
+        id: postId,
+      },
+    });
+
+    const like = await this.prisma.like.create({
       data: {
         userId,
         postId,
       },
     });
+
+    if (post.userId !== userId) {
+      await this.notificationService.sendNotification(
+        post.userId,
+        'Your post has been liked!',
+      );
+    }
+
+    return like;
   }
 
   async unlikePost(userId: number, postId: number): Promise<void> {

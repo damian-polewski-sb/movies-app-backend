@@ -39,6 +39,8 @@ model User {
 
   followers Follow[] @relation("follower")
   following Follow[] @relation("following")
+
+  Notification Notification[]
 }
 
 model List {
@@ -121,4 +123,13 @@ model Follow {
   createdAt   DateTime @default(now())
 
   @@id([followingId, followerId])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  message   String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

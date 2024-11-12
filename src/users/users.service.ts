@@ -99,7 +99,7 @@ export class UsersService {
   }
 
   async getFollowers(userId: number) {
-    return this.prisma.follows.findMany({
+    return this.prisma.follow.findMany({
       where: { followingId: userId },
       include: {
         follower: {
@@ -114,7 +114,7 @@ export class UsersService {
   }
 
   async getFollowing(userId: number) {
-    return this.prisma.follows.findMany({
+    return this.prisma.follow.findMany({
       where: { followerId: userId },
       include: {
         following: {
@@ -132,7 +132,7 @@ export class UsersService {
     if (followingId === followerId)
       throw new ConflictException('User cannot follow themselves!');
 
-    const existingFollow = await this.prisma.follows.findUnique({
+    const existingFollow = await this.prisma.follow.findUnique({
       where: {
         followingId_followerId: {
           followingId,
@@ -144,7 +144,7 @@ export class UsersService {
     if (existingFollow)
       throw new ConflictException('User is already followed!');
 
-    return this.prisma.follows.create({
+    return this.prisma.follow.create({
       data: {
         followingId,
         followerId,
@@ -156,7 +156,7 @@ export class UsersService {
     if (followingId === followerId)
       throw new ConflictException('User cannot follow themselves!');
 
-    const followRelation = await this.prisma.follows.findUnique({
+    const followRelation = await this.prisma.follow.findUnique({
       where: {
         followingId_followerId: {
           followingId,
@@ -167,7 +167,7 @@ export class UsersService {
 
     if (!followRelation) throw new NotFoundException('User is not followed!');
 
-    return this.prisma.follows.delete({
+    return this.prisma.follow.delete({
       where: {
         followingId_followerId: {
           followingId,
