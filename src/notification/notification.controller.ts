@@ -14,8 +14,11 @@ export class NotificationController {
   }
 
   @Patch(':id/read')
-  async markAsRead(@Param('id') notificationId: number) {
-    return this.notificationService.markAsRead(notificationId);
+  async markAsRead(
+    @Param('id') notificationId: number,
+    @GetUser('id') userId: number,
+  ) {
+    return this.notificationService.markAsRead(notificationId, userId);
   }
 
   @Patch('read-all')

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Notification } from '@prisma/client';
 
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -34,7 +34,19 @@ export class NotificationService {
     });
   }
 
-  async markAsRead(notificationId: number): Promise<Notification> {
+  async markAsRead(
+    notificationId: number,
+    userId: number,
+  ): Promise<Notification> {
+    const notification = await this.prisma.notification.findUnique({
+      where: {
+        id: notificationId,
+        userId,
+      },
+    });
+
+    if (!notification) throw new ForbiddenException('Access denied!');
+
     return this.prisma.notification.update({
       where: { id: notificationId },
       data: { isRead: true },
